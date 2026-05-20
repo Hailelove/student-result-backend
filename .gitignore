@@ -1,0 +1,11 @@
+# Hidden secrets file
+.env
+
+# Dependency folders
+node_modules/
+
+# Hidden student data spreadsheet
+students.csv
+
+# Log files
+npm-debug.log*
