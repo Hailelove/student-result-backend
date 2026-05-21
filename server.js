@@ -65,7 +65,7 @@ app.post("/api/results/view", async (req, res) => {
   try {
     // Case-insensitive lookup for Father's Name
     const student = await Student.findOne({
-      studentId: studentId.trim(),
+      studentId: { $regex: new RegExp(`^${studentId.trim()}$`, "i") },
       fatherName: { $regex: new RegExp(fatherName.trim(), "i") },
     });
 
