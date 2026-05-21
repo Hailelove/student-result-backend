@@ -63,10 +63,21 @@ app.post("/api/results/view", async (req, res) => {
   }
 
   try {
+    // Clean user inputs
+    const cleanId = studentId.trim();
+    const cleanFatherName = fatherName.trim();
+
     // Case-insensitive lookup for Father's Name
+
+    // const student = await Student.findOne({
+    //   studentId: { $regex: new RegExp(`^${studentId.trim()}$`, "i") },
+    //   fatherName: { $regex: new RegExp(fatherName.trim(), "i") },
+    // });
+
+    // Look up with case-insensitivity ('i') and partial match capability
     const student = await Student.findOne({
-      studentId: { $regex: new RegExp(`^${studentId.trim()}$`, "i") },
-      fatherName: { $regex: new RegExp(fatherName.trim(), "i") },
+      studentId: { $regex: new RegExp(cleanId, "i") },
+      fatherName: { $regex: new RegExp(cleanFatherName, "i") },
     });
 
     if (!student) {
