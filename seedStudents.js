@@ -6,7 +6,6 @@ const csv = require("csv-parser");
 const mongoose = require("mongoose");
 const Student = require("./models/Student");
 
-// Connect to MongoDB
 const dbURI = process.env.MONGO_URI || "mongodb://localhost:27017/resultViewer";
 mongoose
   .connect(dbURI)
@@ -21,42 +20,75 @@ const seedFromCSV = async () => {
     const results = [];
     const csvFilePath = path.join(__dirname, "students.csv");
 
-    // Check if file exists
     if (!fs.existsSync(csvFilePath)) {
       console.error(`Error: Cannot find students.csv at ${csvFilePath}`);
       process.exit(1);
     }
 
-    // Read and parse the Excel/CSV rows
     fs.createReadStream(csvFilePath)
       .pipe(csv())
       .on("data", (row) => {
-        // Normalize spreadsheet keys to lowercase and trim spaces to bypass structural variations
+        // Normalize keys by lowercase and remove all whitespace completely
         const keys = Object.keys(row).reduce((acc, k) => {
-          acc[k.toLowerCase().trim()] = row[k];
+          const cleanKey = k.toLowerCase().replace(/\s+/g, "");
+          acc[cleanKey] = row[k];
           return acc;
         }, {});
 
-        // Safely extract values regardless of column capitalization variants
-        const studentIdVal = (keys["studentid"] || keys["id"] || "").trim();
-        const firstNameVal = (keys["firstname"] || keys["name"] || "").trim();
-        const fatherNameVal = (keys["fathername"] || "").trim();
+        // Fallback checks for column variations containing your target names
+        const findValueByKeyword = (keyword, defaultVal = "") => {
+          const matchingKey = Object.keys(keys).find((k) =>
+            k.includes(keyword),
+          );
+          return matchingKey ? keys[matchingKey] : defaultVal;
+        };
 
-        // Push formatted document schema map
-        results.push({
-          studentId: studentIdVal,
-          firstName: firstNameVal,
-          fatherName: fatherNameVal,
-          assessments: {
-            individualAssignment:
-              parseFloat(keys["individualassignment"] || keys["assignment"]) ||
-              0,
-            labExam: parseFloat(keys["labexam"] || keys["lab"]) || 0,
-            midExam: parseFloat(keys["midexam"] || keys["mid"]) || 0,
-            project: parseFloat(keys["project"]) || 0,
-            finalExam: parseFloat(keys["finalexam"] || keys["final"]) || 0,
-          },
-        });
+        const studentIdVal = (
+          keys["studentid"] ||
+          keys["id"] ||
+          findValueByKeyword("id")
+        ).trim();
+        const firstNameVal = (
+          keys["firstname"] ||
+          keys["name"] ||
+          findValueByKeyword("first")
+        ).trim();
+        const fatherNameVal = (
+          keys["fathername"] || findValueByKeyword("father")
+        ).trim();
+
+        if (studentIdVal) {
+          results.push({
+            studentId: studentIdVal,
+            firstName: firstNameVal,
+            fatherName: fatherNameVal,
+            assessments: {
+              individualAssignment:
+                parseFloat(
+                  keys["individualassignment"] ||
+                    keys["assignment"] ||
+                    findValueByKeyword("assignment"),
+                ) || 0,
+              labExam:
+                parseFloat(
+                  keys["labexam"] || keys["lab"] || findValueByKeyword("lab"),
+                ) || 0,
+              midExam:
+                parseFloat(
+                  keys["midexam"] || keys["mid"] || findValueByKeyword("mid"),
+                ) || 0,
+              project:
+                parseFloat(keys["project"] || findValueByKeyword("project")) ||
+                0,
+              finalExam:
+                parseFloat(
+                  keys["finalexam"] ||
+                    keys["final"] ||
+                    findValueByKeyword("final"),
+                ) || 0,
+            },
+          });
+        }
       })
       .on("end", async () => {
         console.log(
@@ -64,14 +96,21 @@ const seedFromCSV = async () => {
         );
 
         try {
-          // Loop through and save to trigger your schema's totalMark pre-save hooks
+          // Track entry counts to ensure data is real
+          let successfulInserts = 0;
           for (const studentData of results) {
-            // Only insert documents that have an actual ID attached
-            if (studentData.studentId) {
+            if (studentData.studentId && studentData.fatherName) {
               await Student.create(studentData);
+              successfulInserts++;
+            } else {
+              console.warn(
+                `⚠️ Skipping row with missing elements: ID='${studentData.studentId}', FatherName='${studentData.fatherName}'`,
+              );
             }
           }
-          console.log("Successfully seeded all students smoothly!");
+          console.log(
+            `Successfully seeded ${successfulInserts} students smoothly!`,
+          );
           process.exit(0);
         } catch (dbError) {
           console.error("Database saving failed:", dbError);

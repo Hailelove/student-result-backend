@@ -8,18 +8,6 @@ const Student = require("./models/Student");
 const app = express();
 app.use(express.json());
 
-// app.use(
-//   cors({
-//     origin: [
-//       "https://student-result-frontend-jyfu-git-main-deme1.vercel.app",
-//       "https://student-result-frontend-jyfu-f9r6vl1ju-deme1.vercel.app",
-//       "http://localhost:5173", // Allows you to test locally using Vite
-//       "http://localhost:3000",
-//     ],
-//     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-//     credentials: true,
-//   }),
-// );
 const allowedOrigins = [
   "https://student-result-frontend-jyfu.vercel.app",
   "https://student-result-frontend-jyfu-git-main-deme1.vercel.app",
@@ -53,6 +41,7 @@ mongoose
   .catch((err) => console.error("Database connection error:", err));
 
 // Route to fetch student result
+// Route to fetch student result
 app.post("/api/results/view", async (req, res) => {
   const { studentId, fatherName } = req.body;
 
@@ -63,21 +52,13 @@ app.post("/api/results/view", async (req, res) => {
   }
 
   try {
-    // Clean user inputs
     const cleanId = studentId.trim();
     const cleanFatherName = fatherName.trim();
 
-    // Case-insensitive lookup for Father's Name
-
-    // const student = await Student.findOne({
-    //   studentId: { $regex: new RegExp(`^${studentId.trim()}$`, "i") },
-    //   fatherName: { $regex: new RegExp(fatherName.trim(), "i") },
-    // });
-
-    // Look up with case-insensitivity ('i') and partial match capability
+    // Strict boundary checks with regex case-insensitive options
     const student = await Student.findOne({
-      studentId: { $regex: new RegExp(cleanId, "i") },
-      fatherName: { $regex: new RegExp(cleanFatherName, "i") },
+      studentId: { $regex: new RegExp(`^${cleanId}$`, "i") },
+      fatherName: { $regex: new RegExp(`^${cleanFatherName}$`, "i") },
     });
 
     if (!student) {
@@ -88,6 +69,7 @@ app.post("/api/results/view", async (req, res) => {
 
     res.status(200).json(student);
   } catch (error) {
+    console.error("Lookup runtime error:", error);
     res.status(500).json({ message: "Server error tracking down data." });
   }
 });
