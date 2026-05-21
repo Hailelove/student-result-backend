@@ -11,6 +11,7 @@ app.use(express.json());
 app.use(
   cors({
     origin: "https://student-result-frontend-jyfu-f9r6vl1ju-deme1.vercel.app",
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     credentials: true,
   }),
 );
