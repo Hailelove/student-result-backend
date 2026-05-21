@@ -7,7 +7,14 @@ const Student = require("./models/Student");
 
 const app = express();
 app.use(express.json());
-app.use(cors());
+
+app.use(
+  cors({
+    origin: "https://student-result-frontend-jyfu-f9r6vl1ju-deme1.vercel.app",
+    credentials: true,
+  }),
+);
+
 const dbURI = process.env.MONGO_URI || "mongodb://localhost:27017/resultViewer";
 
 // MongoDB Connection
