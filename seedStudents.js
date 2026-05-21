@@ -31,17 +31,30 @@ const seedFromCSV = async () => {
     fs.createReadStream(csvFilePath)
       .pipe(csv())
       .on("data", (row) => {
-        // Automatically convert flat spreadsheet columns into your nested Schema layout
+        // Normalize spreadsheet keys to lowercase and trim spaces to bypass structural variations
+        const keys = Object.keys(row).reduce((acc, k) => {
+          acc[k.toLowerCase().trim()] = row[k];
+          return acc;
+        }, {});
+
+        // Safely extract values regardless of column capitalization variants
+        const studentIdVal = (keys["studentid"] || keys["id"] || "").trim();
+        const firstNameVal = (keys["firstname"] || keys["name"] || "").trim();
+        const fatherNameVal = (keys["fathername"] || "").trim();
+
+        // Push formatted document schema map
         results.push({
-          studentId: row.studentId?.trim(),
-          firstName: row.firstName?.trim(),
-          fatherName: row.fatherName?.trim(),
+          studentId: studentIdVal,
+          firstName: firstNameVal,
+          fatherName: fatherNameVal,
           assessments: {
-            individualAssignment: parseFloat(row.individualAssignment) || 0,
-            labExam: parseFloat(row.labExam) || 0,
-            midExam: parseFloat(row.midExam) || 0,
-            project: parseFloat(row.project) || 0,
-            finalExam: parseFloat(row.finalExam) || 0,
+            individualAssignment:
+              parseFloat(keys["individualassignment"] || keys["assignment"]) ||
+              0,
+            labExam: parseFloat(keys["labexam"] || keys["lab"]) || 0,
+            midExam: parseFloat(keys["midexam"] || keys["mid"]) || 0,
+            project: parseFloat(keys["project"]) || 0,
+            finalExam: parseFloat(keys["finalexam"] || keys["final"]) || 0,
           },
         });
       })
@@ -51,9 +64,12 @@ const seedFromCSV = async () => {
         );
 
         try {
-          // Loop through and save to trigger the totalMark pre-save hook
+          // Loop through and save to trigger your schema's totalMark pre-save hooks
           for (const studentData of results) {
-            await Student.create(studentData);
+            // Only insert documents that have an actual ID attached
+            if (studentData.studentId) {
+              await Student.create(studentData);
+            }
           }
           console.log("Successfully seeded all students smoothly!");
           process.exit(0);
