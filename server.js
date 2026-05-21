@@ -8,9 +8,36 @@ const Student = require("./models/Student");
 const app = express();
 app.use(express.json());
 
+// app.use(
+//   cors({
+//     origin: [
+//       "https://student-result-frontend-jyfu-git-main-deme1.vercel.app",
+//       "https://student-result-frontend-jyfu-f9r6vl1ju-deme1.vercel.app",
+//       "http://localhost:5173", // Allows you to test locally using Vite
+//       "http://localhost:3000",
+//     ],
+//     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+//     credentials: true,
+//   }),
+// );
+const allowedOrigins = [
+  "https://student-result-frontend-jyfu-git-main-deme1.vercel.app",
+  "https://student-result-frontend-jyfu-f9r6vl1ju-deme1.vercel.app",
+  "http://localhost:5173", // For local Vite development testing
+  "http://localhost:3000",
+];
 app.use(
   cors({
-    origin: "https://student-result-frontend-jyfu-f9r6vl1ju-deme1.vercel.app",
+    origin: function (origin, callback) {
+      // Allow requests with no origin (like mobile apps or curl requests)
+      if (!origin) return callback(null, true);
+      if (allowedOrigins.indexOf(origin) === -1) {
+        const msg =
+          "The CORS policy for this site does not allow access from the specified Origin.";
+        return callback(new Error(msg), false);
+      }
+      return callback(null, true);
+    },
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     credentials: true,
   }),
