@@ -6,10 +6,13 @@ const csv = require("csv-parser");
 const mongoose = require("mongoose");
 const Student = require("./models/Student");
 
-const dbURI = process.env.MONGO_URI || "mongodb://localhost:27017/resultViewer";
+// Direct connection string to bypass Windows CMD issues
+const dbURI =
+  "mongodb+srv://haile11new_db_user:OiPFnFy1Ns6iZJHS@cluster0.bacqxzc.mongodb.net/resultViewer?retryWrites=true&w=majority&appName=Cluster0";
+
 mongoose
   .connect(dbURI)
-  .then(() => console.log("Database Connected for CSV Seeding..."))
+  .then(() => console.log("🚀 Connected DIRECTLY to MongoDB Atlas..."))
   .catch((err) => console.error("Connection error:", err));
 
 const seedFromCSV = async () => {

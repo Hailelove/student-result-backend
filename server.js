@@ -12,6 +12,9 @@ const allowedOrigins = [
   "https://student-result-frontend-jyfu.vercel.app",
   "https://student-result-frontend-jyfu-git-main-deme1.vercel.app",
   "https://student-result-frontend-jyfu-f9r6vl1ju-deme1.vercel.app",
+
+  "https://advancedprogramming.vercel.app/",
+
   "http://localhost:5173", // For local Vite development testing
   "http://localhost:3000",
 ];
