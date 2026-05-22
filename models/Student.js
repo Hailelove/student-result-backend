@@ -16,7 +16,7 @@ const StudentSchema = new mongoose.Schema({
 });
 
 // Pre-save hook to automatically calculate total marks
-StudentSchema.pre("save", function (next) {
+StudentSchema.pre("save", function () {
   const { individualAssignment, labExam, midExam, project, finalExam } =
     this.assessments;
   this.totalMark =
@@ -25,7 +25,6 @@ StudentSchema.pre("save", function (next) {
     (midExam || 0) +
     (project || 0) +
     (finalExam || 0);
-  return next();
 });
 
 module.exports = mongoose.model("Student", StudentSchema);
