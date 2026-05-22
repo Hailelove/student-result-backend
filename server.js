@@ -9,11 +9,10 @@ const app = express();
 app.use(express.json());
 
 const allowedOrigins = [
+  "https://advancedprogramming.vercel.app",
   "https://student-result-frontend-jyfu.vercel.app",
   "https://student-result-frontend-jyfu-git-main-deme1.vercel.app",
   "https://student-result-frontend-jyfu-f9r6vl1ju-deme1.vercel.app",
-
-  "https://advancedprogramming.vercel.app/",
 
   "http://localhost:5173", // For local Vite development testing
   "http://localhost:3000",
@@ -21,14 +20,20 @@ const allowedOrigins = [
 app.use(
   cors({
     origin: function (origin, callback) {
-      // Allow requests with no origin (like mobile apps or curl requests)
+      console.log("Request Origin:", origin);
+
       if (!origin) return callback(null, true);
-      if (allowedOrigins.indexOf(origin) === -1) {
-        const msg =
-          "The CORS policy for this site does not allow access from the specified Origin.";
-        return callback(new Error(msg), false);
+
+      if (!allowedOrigins.includes(origin)) {
+        console.log("Blocked by CORS:", origin);
+
+        return callback(
+          new Error("CORS policy does not allow this origin"),
+          false,
+        );
       }
-      return callback(null, true);
+
+      callback(null, true);
     },
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     credentials: true,
