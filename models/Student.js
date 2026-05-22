@@ -25,7 +25,7 @@ StudentSchema.pre("save", function (next) {
     (midExam || 0) +
     (project || 0) +
     (finalExam || 0);
-  next();
+  return next();
 });
 
 module.exports = mongoose.model("Student", StudentSchema);
